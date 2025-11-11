@@ -1,36 +1,50 @@
----
-title: Packaging app for Windows
-sidebar_label: Windows
----
+import flet as ft
 
-Flet CLI provides `flet build windows` command that allows packaging Flet app into a Windows application.
+def main(page: ft.Page):
+    page.title = "Punto de Equilibrio"
+    page.scroll = "adaptive"
+    page.theme_mode = ft.ThemeMode.LIGHT
 
-:::note
-The command can be run on Windows only.
-:::
+    cf_field = ft.TextField(label="Costo Fijo (Cf)", keyboard_type=ft.KeyboardType.NUMBER)
+    pv_field = ft.TextField(label="Precio de Venta (Pv)", keyboard_type=ft.KeyboardType.NUMBER)
+    cv_field = ft.TextField(label="Costo Variable (Cv)", keyboard_type=ft.KeyboardType.NUMBER)
 
-## Prerequisites
+    mc_result = ft.Text()
+    peo_result = ft.Text(color=ft.colors.BLUE)
 
-### Visual Studio 2022
+    def calcular_click(e):
+        try:
+            cf = float(cf_field.value)
+            pv = float(pv_field.value)
+            cv = float(cv_field.value)
+        except:
+            page.snack_bar = ft.SnackBar(ft.Text("⚠️ Ingresa números válidos."))
+            page.snack_bar.open = True
+            page.update()
+            return
 
-Building Flet app for Windows desktop requires [Visual Studio 2022](https://learn.microsoft.com/visualstudio/install/install-visual-studio?view=vs-2022) with **Desktop development with C++** workload installed.
+        if pv <= cv:
+            page.snack_bar = ft.SnackBar(ft.Text("⚠️ Pv debe ser > Cv."))
+            page.snack_bar.open = True
+            page.update()
+            return
 
-[Follow this medium article](https://medium.com/@teamcode20233/a-guide-to-install-desktop-development-with-c-workload-542bb92cfe90) for the instructions on downloading & installing correct Visual Studio components for Flutter desktop development.
+        mc = pv - cv
+        peo = cf / mc
 
-### Enable Developer Mode
+        mc_result.value = f"Mc: ${mc:.2f}"
+        peo_result.value = f"Peo: {peo:.2f} unidades"
+        page.update()
 
-While running `flet build` on Windows you may get the following error:
+    page.add(
+        ft.Text("📊 Punto de Equilibrio", size=24, weight="bold"),
+        cf_field,
+        pv_field,
+        cv_field,
+        ft.ElevatedButton("Calcular", on_click=calcular_click, width=200),
+        mc_result,
+        peo_result,
+        ft.Text("Hecho con Flet • Python", size=12, italic=True, color=ft.colors.GREY)
+    )
 
-```
-Building with plugins requires symlink support.
-
-Please enable Developer Mode in your system settings. Run
-  start ms-settings:developers
-to open settings.
-```
-
-[Follow this SO answer](https://stackoverflow.com/a/70994092/1435891) for the instructions on how to enable developer mode in Windows 11.
-
-## `flet build windows`
-
-Creates a Windows application from your Flet app.
+ft.app(target=main)
